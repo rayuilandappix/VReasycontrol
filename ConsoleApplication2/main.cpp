@@ -41,6 +41,11 @@ int bSums(Mat src)
 
 int main()
 {
+	//初始化hsv
+	Mat h_plane;
+	Mat s_plane;
+	Mat v_plane;
+	Mat dst;
 	//初始化WSA  
 	WORD sockVersion = MAKEWORD(2, 2);
 	WSADATA wsaData;
@@ -95,18 +100,53 @@ int main()
 	char c;
 	VideoCapture inputVideo(0);    
 	Mat src;
-	Mat oneclo[3];
+	Mat hsvmat;
 	int oldnum = 1;
 	//vector<vector<Point>> contours;
 	//vector<Vec4i> hierarchy;
 	cvNamedWindow("输出", CV_WINDOW_AUTOSIZE);
 	cvNamedWindow("跟踪", CV_WINDOW_AUTOSIZE);
+	cvNamedWindow("输入", CV_WINDOW_AUTOSIZE);
 	for (;;)
 	{
 		
 		inputVideo >> src;
-		imshow("跟踪", src);
+		imshow("输入", src);
+		hsvmat = src;
 		cvtColor(src, src, CV_BGR2GRAY);
+		/*
+		//hsv测试
+		h_plane.create(hsvmat.size(), hsvmat.type());
+		s_plane.create(hsvmat.size(), hsvmat.type());
+		v_plane.create(hsvmat.size(), hsvmat.type());
+		cvtColor(hsvmat, hsvmat, CV_BGR2HSV);
+		vector<Mat>hsv_planes;
+		hsv_planes.resize(3); 
+
+		split(dst, hsv_planes);
+		h_plane = hsv_planes[0];
+		s_plane = hsv_planes[1];
+		v_plane = hsv_planes[2];
+		for (int j = 0; j< hsvmat.rows; j++)
+		{
+			const uchar* data_h = h_plane.ptr<uchar>(j);
+			const uchar* data_s = s_plane.ptr<uchar>(j);
+			const uchar* data_v = v_plane.ptr<uchar>(j);
+			for (int i = 0; i <hsvmat.cols*src.channels(); i++)
+			{
+				if (data_h[i] * 2<45 && data_s[i]>100 && data_v[i]>80)
+				{
+					hsvmat.at<uchar>(j, i) = 255;
+				}
+				else
+				{
+					hsvmat.at<uchar>(j, i) = 0;
+				}
+			}
+		}
+		imshow("二值化图像", hsvmat);
+		//hsv测试结束
+		*/
 		medianBlur(src,src,3);
 		//cvFlip(src,src, 1);
 		GaussianBlur(src, src, Size(7, 7), 4.5,3);
@@ -150,8 +190,9 @@ int main()
 		//itoa(num, sendData, 10);
 
 		char buf[32];
-		sprintf(buf, "x%dy%dbig%d", numx,numy,big);
+		sprintf(buf, "%d;%d;%d", numx, numy, big);
 		send(sClient, buf, strlen(buf), 0);
+		_sleep(50);
 		oldnum = num;
 
 		c = waitKey(10);
